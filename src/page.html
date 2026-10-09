@@ -135,34 +135,43 @@ select, .txt { border: 1px solid var(--line); background: var(--bg); border-radi
 .lab { display: flex; flex-direction: column; gap: 4px; }
 .mhead .go { border: 0; background: var(--red); color: #fff; border-radius: 4px; padding: 1px 8px; font: inherit; letter-spacing: .06em; text-transform: uppercase; }
 
-/* Zähler */
-.ov { position: fixed; inset: 0; z-index: 10; background: var(--bg); overflow-y: auto;
-  padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px calc(env(safe-area-inset-bottom, 0px) + 16px); }
-.sheet { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+/* Zähler: passt ohne Scrollen auf einen Handybildschirm, das Tastenfeld füllt den Rest */
+.ov { position: fixed; inset: 0; z-index: 10; background: var(--bg); display: flex;
+  padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px calc(env(safe-area-inset-bottom, 0px) + 10px); }
+.sheet { width: 100%; max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
 .sheet-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.x { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; width: 40px; height: 40px; font-size: 1.1rem; }
+.sheet-head .eyebrow { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.x { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; width: 36px; height: 36px; font-size: 1rem; flex: none; }
 .duel { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.pl-card { background: var(--surface); border: 2px solid var(--line); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pl-card { background: var(--surface); border: 2px solid var(--line); border-radius: 12px; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .pl-card.on { border-color: var(--red); }
-.pl-card .who { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pl-card .rest { font-family: var(--font-display); font-size: 3.4rem; line-height: 1; font-variant-numeric: tabular-nums; }
-.pl-card .sm { display: flex; justify-content: space-between; gap: 6px; color: var(--muted); font-size: .85rem; font-variant-numeric: tabular-nums; }
-.pl-card .fin { color: var(--green); font-weight: 600; }
-.dots { display: flex; gap: 4px; }
-.dots i { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--muted); }
+.pl-card .who { font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.pl-card .rest { font-family: var(--font-display); font-size: 3rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.pl-card .sm { display: flex; justify-content: space-between; align-items: center; gap: 6px; color: var(--muted); font-size: .8rem; font-variant-numeric: tabular-nums; min-width: 0; }
+.pl-card .sm span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-card .co { font-family: var(--font-display); font-size: 1.05rem; letter-spacing: .04em; color: var(--green); min-height: 1.3em; }
+.pl-card .co .no { color: var(--muted); font-size: .9rem; }
+.dots { display: flex; gap: 3px; flex: none; }
+.dots i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--muted); }
 .dots i.f { background: var(--green); border-color: var(--green); }
-.msg { min-height: 1.4em; text-align: center; font-weight: 600; color: var(--red); }
+.msg { min-height: 1.3em; text-align: center; font-weight: 600; font-size: .9rem; color: var(--red); }
 .msg.ok { color: var(--green); }
-.typed { font-family: var(--font-display); font-size: 2.6rem; text-align: center; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 2px; font-variant-numeric: tabular-nums; }
-.typed .ph { color: var(--muted); }
-.qs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
-.qs button { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px 0; font-family: var(--font-display); font-size: 1.1rem; }
-.pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.pad button { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; height: 58px; font-family: var(--font-display); font-size: 1.7rem; }
-.pad button:active, .qs button:active { background: var(--line); }
-.pad .ok { background: var(--green); border-color: var(--green); color: #fff; font-size: 1.3rem; }
+.visit { display: grid; grid-template-columns: repeat(3, 1fr) auto; gap: 6px; align-items: center; }
+.slot { border: 1px dashed var(--line); border-radius: 8px; text-align: center; padding: 5px 0; font-family: var(--font-display); font-size: 1.15rem; color: var(--muted); }
+.slot.f { border-style: solid; background: var(--surface); color: var(--ink); }
+.visit .sum { font-family: var(--font-display); font-size: 1.5rem; min-width: 3.2em; text-align: right; font-variant-numeric: tabular-nums; }
+.mods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.mods button { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px 0; font-weight: 600; }
+.mods button[aria-pressed="true"] { background: var(--red); border-color: var(--red); color: #fff; }
+.pad { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(5, 1fr); grid-auto-rows: minmax(40px, 1fr); gap: 6px; }
+.pad button { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; font-family: var(--font-display); font-size: 1.35rem; line-height: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+.pad button small { font-family: var(--font-body); font-size: .7rem; color: var(--muted); }
+.pad button:disabled { opacity: .35; }
+.pad button:active { background: var(--line); }
+.pad .ok { grid-column: span 2; background: var(--green); border-color: var(--green); color: #fff; font-size: 1.1rem; }
 .sheet-foot { display: flex; justify-content: space-between; gap: 8px; }
-.wonbox { text-align: center; padding: 24px 12px; background: var(--green-soft); border: 1px solid var(--green); border-radius: 12px; display: flex; flex-direction: column; gap: 4px; }
+.btn.big { padding: 14px; font-size: 1rem; }
+.wonbox { text-align: center; padding: 20px 12px; background: var(--green-soft); border: 1px solid var(--green); border-radius: 12px; display: flex; flex-direction: column; gap: 4px; }
 .wonbox strong { font-family: var(--font-display); font-size: 2.4rem; line-height: 1.05; }
 </style>
 

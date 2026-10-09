@@ -140,34 +140,43 @@ select, .txt { border: 1px solid var(--line); background: var(--bg); border-radi
 .lab { display: flex; flex-direction: column; gap: 4px; }
 .mhead .go { border: 0; background: var(--red); color: #fff; border-radius: 4px; padding: 1px 8px; font: inherit; letter-spacing: .06em; text-transform: uppercase; }
 
-/* Zähler */
-.ov { position: fixed; inset: 0; z-index: 10; background: var(--bg); overflow-y: auto;
-  padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px calc(env(safe-area-inset-bottom, 0px) + 16px); }
-.sheet { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+/* Zähler: passt ohne Scrollen auf einen Handybildschirm, das Tastenfeld füllt den Rest */
+.ov { position: fixed; inset: 0; z-index: 10; background: var(--bg); display: flex;
+  padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px calc(env(safe-area-inset-bottom, 0px) + 10px); }
+.sheet { width: 100%; max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
 .sheet-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.x { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; width: 40px; height: 40px; font-size: 1.1rem; }
+.sheet-head .eyebrow { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.x { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; width: 36px; height: 36px; font-size: 1rem; flex: none; }
 .duel { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.pl-card { background: var(--surface); border: 2px solid var(--line); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pl-card { background: var(--surface); border: 2px solid var(--line); border-radius: 12px; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .pl-card.on { border-color: var(--red); }
-.pl-card .who { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pl-card .rest { font-family: var(--font-display); font-size: 3.4rem; line-height: 1; font-variant-numeric: tabular-nums; }
-.pl-card .sm { display: flex; justify-content: space-between; gap: 6px; color: var(--muted); font-size: .85rem; font-variant-numeric: tabular-nums; }
-.pl-card .fin { color: var(--green); font-weight: 600; }
-.dots { display: flex; gap: 4px; }
-.dots i { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--muted); }
+.pl-card .who { font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.pl-card .rest { font-family: var(--font-display); font-size: 3rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.pl-card .sm { display: flex; justify-content: space-between; align-items: center; gap: 6px; color: var(--muted); font-size: .8rem; font-variant-numeric: tabular-nums; min-width: 0; }
+.pl-card .sm span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-card .co { font-family: var(--font-display); font-size: 1.05rem; letter-spacing: .04em; color: var(--green); min-height: 1.3em; }
+.pl-card .co .no { color: var(--muted); font-size: .9rem; }
+.dots { display: flex; gap: 3px; flex: none; }
+.dots i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--muted); }
 .dots i.f { background: var(--green); border-color: var(--green); }
-.msg { min-height: 1.4em; text-align: center; font-weight: 600; color: var(--red); }
+.msg { min-height: 1.3em; text-align: center; font-weight: 600; font-size: .9rem; color: var(--red); }
 .msg.ok { color: var(--green); }
-.typed { font-family: var(--font-display); font-size: 2.6rem; text-align: center; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 2px; font-variant-numeric: tabular-nums; }
-.typed .ph { color: var(--muted); }
-.qs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
-.qs button { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px 0; font-family: var(--font-display); font-size: 1.1rem; }
-.pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.pad button { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; height: 58px; font-family: var(--font-display); font-size: 1.7rem; }
-.pad button:active, .qs button:active { background: var(--line); }
-.pad .ok { background: var(--green); border-color: var(--green); color: #fff; font-size: 1.3rem; }
+.visit { display: grid; grid-template-columns: repeat(3, 1fr) auto; gap: 6px; align-items: center; }
+.slot { border: 1px dashed var(--line); border-radius: 8px; text-align: center; padding: 5px 0; font-family: var(--font-display); font-size: 1.15rem; color: var(--muted); }
+.slot.f { border-style: solid; background: var(--surface); color: var(--ink); }
+.visit .sum { font-family: var(--font-display); font-size: 1.5rem; min-width: 3.2em; text-align: right; font-variant-numeric: tabular-nums; }
+.mods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.mods button { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px 0; font-weight: 600; }
+.mods button[aria-pressed="true"] { background: var(--red); border-color: var(--red); color: #fff; }
+.pad { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(5, 1fr); grid-auto-rows: minmax(40px, 1fr); gap: 6px; }
+.pad button { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; font-family: var(--font-display); font-size: 1.35rem; line-height: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+.pad button small { font-family: var(--font-body); font-size: .7rem; color: var(--muted); }
+.pad button:disabled { opacity: .35; }
+.pad button:active { background: var(--line); }
+.pad .ok { grid-column: span 2; background: var(--green); border-color: var(--green); color: #fff; font-size: 1.1rem; }
 .sheet-foot { display: flex; justify-content: space-between; gap: 8px; }
-.wonbox { text-align: center; padding: 24px 12px; background: var(--green-soft); border: 1px solid var(--green); border-radius: 12px; display: flex; flex-direction: column; gap: 4px; }
+.btn.big { padding: 14px; font-size: 1rem; }
+.wonbox { text-align: center; padding: 20px 12px; background: var(--green-soft); border: 1px solid var(--green); border-radius: 12px; display: flex; flex-direction: column; gap: 4px; }
 .wonbox strong { font-family: var(--font-display); font-size: 2.4rem; line-height: 1.05; }
 </style>
 </head>
@@ -180,11 +189,6 @@ select, .txt { border: 1px solid var(--line); background: var(--bg); border-radi
   var KEY = "dart-turnier-v1";
   var BYE = -1, TBD = null;
   var MODES = ["501 Double Out", "501 Single Out", "301 Double Out", "301 Single Out", "Cricket"];
-  // Mit drei Darts nicht werfbare Punktzahlen
-  var IMPOSSIBLE = [163, 166, 169, 172, 173, 175, 176, 178, 179];
-  // Restwerte ≤ 170, die sich mit Doppel-Out nicht in einer Aufnahme checken lassen
-  var BOGEY = [159, 162, 163, 165, 166, 168, 169];
-  var QUICK = [26, 41, 45, 60, 81, 85, 100, 121, 140, 180];
 
   function blankState() {
     return { phase: "setup", name: "Dartabend", count: 8, names: [], mode: MODES[0], firstTo: 2, shuffle: true, full: true,
@@ -195,7 +199,7 @@ select, .txt { border: 1px solid var(--line); background: var(--bg); border-radi
   if (!S || !S.phase) S = blankState();
   if (S.full == null) S.full = true;
   S.confirm = false;
-  var typed = "", note = null;
+  var note = null;
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
@@ -415,17 +419,43 @@ select, .txt { border: 1px solid var(--line); background: var(--bg); border-radi
   }
 
   // ---------- Punktezähler ----------
+  // Jeder Dart wird einzeln erfasst ({m: 1|2|3, n: 0..20|25}); die Aufnahme summiert sich automatisch.
+  function dVal(d) { return d.m * d.n; }
+  function dLabel(d) { return d.n === 0 ? "0" : d.n === 25 ? (d.m === 2 ? "Bull" : "25") : (d.m === 3 ? "T" : d.m === 2 ? "D" : "") + d.n; }
+  function range(a, b) { var o = []; for (var i = a; i >= b; i--) o.push(i); return o; }
+  var FIN_D = [20, 16, 18, 12, 10, 8, 19, 17, 15, 14, 13, 11, 9, 7, 6, 5, 4, 3, 2, 1, 25].map(function (n) { return { m: 2, n: n }; });
+  var ALL = range(20, 1).map(function (n) { return { m: 3, n: n }; }).concat([{ m: 2, n: 25 }, { m: 1, n: 25 }],
+    range(20, 1).map(function (n) { return { m: 1, n: n }; }), range(20, 1).map(function (n) { return { m: 2, n: n }; }));
+  var SETUP = ALL.filter(function (d) { return d.m !== 2 || d.n === 25; });
+  function oneDart(v) {
+    if (v <= 0) return null;
+    if (v <= 20 || v === 25) return { m: 1, n: v };
+    if (v % 3 === 0 && v / 3 <= 20) return { m: 3, n: v / 3 };
+    if (v % 2 === 0 && (v / 2 <= 20 || v === 50)) return { m: 2, n: v / 2 };
+    return null;
+  }
+  // Kürzester Checkout mit bevorzugten Doppeln (D20, D16, D18 …); bei Single Out darf jeder Dart beenden.
+  function checkout(rest, left) {
+    if (rest <= 0 || left <= 0 || (doubleOut() && rest === 1)) return null;
+    var fins = doubleOut() ? FIN_D : ALL, i, j, v;
+    for (i = 0; i < fins.length; i++) if (dVal(fins[i]) === rest) return [fins[i]];
+    if (left >= 2) for (i = 0; i < fins.length; i++) { v = oneDart(rest - dVal(fins[i])); if (v) return [v, fins[i]]; }
+    if (left >= 3) for (i = 0; i < fins.length; i++) for (j = 0; j < SETUP.length; j++) {
+      v = oneDart(rest - dVal(fins[i]) - dVal(SETUP[j])); if (v) return [SETUP[j], v, fins[i]];
+    }
+    return null;
+  }
+
   function newLive(m) {
-    var r = m.res || {};
-    var s = startScore();
-    return { id: m.id, a: m.a, b: m.b, open: true, legs: [r.la || 0, r.lb || 0], rest: [s, s], turn: 0, starter: 0,
+    var r = m.res || {}, s = startScore();
+    return { id: m.id, a: m.a, b: m.b, open: true, legs: [r.la || 0, r.lb || 0], rest: [s, s], turn: 0, starter: 0, darts: [], mod: 1,
              stats: [{ pts: 0, visits: 0 }, { pts: 0, visits: 0 }], last: [null, null], done: false, hist: [] };
   }
   function openCounter(id) {
     var m = compute().all.filter(function (x) { return x.id === id; })[0];
     if (!m || !m.ready) return;
-    if (!S.live || S.live.id !== id || S.live.a !== m.a || S.live.b !== m.b) S.live = newLive(m);
-    S.live.open = true; typed = ""; note = null;
+    if (!S.live || S.live.id !== id || S.live.a !== m.a || S.live.b !== m.b || !S.live.darts) S.live = newLive(m);
+    S.live.open = true; note = null;
     save(); render();
   }
   function writeResult(L) {
@@ -435,40 +465,57 @@ select, .txt { border: 1px solid var(--line); background: var(--bg); border-radi
     r.w = L.done ? (L.legs[0] > L.legs[1] ? L.a : L.b) : null;
     S.results[L.id] = r;
   }
-  function submit(v) {
+  function snapshot(L) { var s = JSON.parse(JSON.stringify(L)); delete s.hist; L.hist.push(s); if (L.hist.length > 80) L.hist.shift(); }
+  function visitSum(L) { return L.darts.reduce(function (s, d) { return s + dVal(d); }, 0); }
+
+  function addDart(n) {
     var L = S.live;
     if (!L || L.done) return;
-    if (isNaN(v) || v > 180 || IMPOSSIBLE.indexOf(v) >= 0) { note = { t: v + " kann man mit drei Darts nicht werfen.", ok: false }; typed = ""; return render(); }
-    var snap = JSON.parse(JSON.stringify(L)); delete snap.hist; L.hist.push(snap);
-    if (L.hist.length > 60) L.hist.shift();
-    var t = L.turn, who = nameOf(t ? L.b : L.a), nr = L.rest[t] - v;
+    var d = { m: n === 0 ? 1 : L.mod, n: n };
+    if (n === 25 && d.m === 3) return;
+    if (!L.darts.length) snapshot(L);
+    L.darts.push(d); L.mod = 1; note = null;
+    var nr = L.rest[L.turn] - visitSum(L);
+    var bust = nr < 0 || (doubleOut() && nr === 1) || (nr === 0 && doubleOut() && d.m !== 2);
+    if (bust || nr === 0 || L.darts.length === 3) return endVisit(bust);
+    save(); render();
+  }
+  function endVisit(bust) {
+    var L = S.live, t = L.turn, sum = visitSum(L), who = nameOf(t ? L.b : L.a);
+    if (!L.darts.length) snapshot(L);
     L.stats[t].visits++;
-    if (nr < 0 || (doubleOut() && nr === 1)) {
-      L.last[t] = "Bust"; note = { t: "Überworfen! " + who + " bleibt auf " + L.rest[t] + ".", ok: false };
+    var lbl = L.darts.map(dLabel).join(" ");
+    if (bust) {
+      L.last[t] = "Bust (" + lbl + ")";
+      note = { t: "Überworfen! " + who + " bleibt auf " + L.rest[t] + "." + (doubleOut() && L.rest[t] - sum === 0 ? " Der letzte Dart muss ein Doppel sein." : ""), ok: false };
       L.turn = 1 - t;
     } else {
-      L.stats[t].pts += v; L.rest[t] = nr; L.last[t] = v; note = null;
-      if (nr === 0) {
+      L.stats[t].pts += sum; L.rest[t] -= sum; L.last[t] = (lbl || "0") + " = " + sum;
+      if (L.rest[t] === 0) {
         L.legs[t]++;
-        if (L.legs[t] >= S.firstTo) { L.done = true; note = { t: who + " gewinnt das Spiel!", ok: true }; }
+        if (L.legs[t] >= S.firstTo) { L.done = true; note = { t: who + " checkt " + sum + " und gewinnt!", ok: true }; }
         else {
           L.starter = 1 - L.starter; L.turn = L.starter; L.rest = [startScore(), startScore()]; L.last = [null, null];
-          note = { t: "Leg für " + who + " (" + L.legs[0] + ":" + L.legs[1] + "). " + nameOf(L.starter ? L.b : L.a) + " beginnt.", ok: true };
+          note = { t: who + " checkt " + sum + ". Leg " + L.legs[0] + ":" + L.legs[1] + ", " + nameOf(L.starter ? L.b : L.a) + " wirft an.", ok: true };
         }
         writeResult(L);
       } else L.turn = 1 - t;
     }
-    typed = ""; save(); render();
-  }
-  function undo() {
-    var L = S.live; if (!L || !L.hist.length) return;
-    var h = L.hist, prev = h.pop(); prev.hist = h; prev.open = true;
-    S.live = prev; writeResult(prev); typed = ""; note = { t: "Letzte Aufnahme zurückgenommen.", ok: true };
+    L.darts = []; L.mod = 1;
     save(); render();
   }
-  function finishable(rest) {
-    if (doubleOut()) return rest <= 170 && rest > 1 && BOGEY.indexOf(rest) < 0;
-    return rest <= 180 && IMPOSSIBLE.indexOf(rest) < 0;
+  // ⌫: letzten Dart löschen; ist die Aufnahme leer, die vorige Aufnahme zurücknehmen.
+  function back() {
+    var L = S.live; if (!L) return;
+    if (L.darts.length) {
+      L.darts.pop();
+      if (!L.darts.length) L.hist.pop();
+      note = null; save(); return render();
+    }
+    if (!L.hist.length) return;
+    var h = L.hist, prev = h.pop(); prev.hist = h; prev.open = true; prev.darts = prev.darts || [];
+    S.live = prev; writeResult(prev); note = { t: "Letzte Aufnahme zurückgenommen.", ok: true };
+    save(); render();
   }
 
   function renderCounter(T) {
@@ -476,36 +523,40 @@ select, .txt { border: 1px solid var(--line); background: var(--bg); border-radi
     if (!L || !L.open) return "";
     var m = T.all.filter(function (x) { return x.id === L.id; })[0];
     if (!m || m.a !== L.a || m.b !== L.b) { S.live = null; return ""; }
+    var sum = visitSum(L);
     var h = '<div class="ov" role="dialog" aria-modal="true" aria-label="Punktezähler"><div class="sheet">';
-    h += '<div class="sheet-head"><div><div class="eyebrow">' + (m.no ? "Spiel " + m.no + " · " : "") + m.title + "</div><h2>" + esc(S.mode) + " · First to " + S.firstTo + "</h2></div>" +
+    h += '<div class="sheet-head"><div class="eyebrow">' + (m.no ? "Spiel " + m.no + " · " : "") + m.title + " · " + esc(S.mode) + " · First to " + S.firstTo + "</div>" +
       '<button class="x" id="c-close" aria-label="Zähler schließen">✕</button></div>';
     h += '<div class="duel">' + [0, 1].map(function (i) {
       var st = L.stats[i], avg = st.visits ? (st.pts / st.visits).toFixed(1) : "–";
+      var on = !L.done && L.turn === i, rest = L.rest[i] - (on ? sum : 0);
+      var co = L.done ? null : checkout(rest, on ? 3 - L.darts.length : 3);
       var dots = ""; for (var k = 0; k < S.firstTo; k++) dots += '<i class="' + (k < L.legs[i] ? "f" : "") + '"></i>';
-      return '<div class="pl-card' + (!L.done && L.turn === i ? " on" : "") + '"><div class="who">' + esc(nameOf(i ? L.b : L.a)) + "</div>" +
-        '<div class="dots" aria-label="' + L.legs[i] + legWord(L.legs[i]) + '">' + dots + "</div>" +
-        '<div class="rest">' + L.rest[i] + "</div>" +
-        '<div class="sm"><span>Ø ' + avg + "</span><span>" + (L.last[i] != null ? "zuletzt " + L.last[i] : "") + "</span></div>" +
-        '<div class="sm">' + (!L.done && finishable(L.rest[i]) ? '<span class="fin">Finish möglich</span>' : "<span>&nbsp;</span>") + "</div></div>";
+      return '<div class="pl-card' + (on ? " on" : "") + '"><div class="sm"><span class="who">' + esc(nameOf(i ? L.b : L.a)) + '</span><span class="dots" aria-label="' + L.legs[i] + legWord(L.legs[i]) + '">' + dots + "</span></div>" +
+        '<div class="rest">' + rest + "</div>" +
+        '<div class="co">' + (co ? co.map(function (d) { return d.m === 1 && d.n !== 25 ? "S" + d.n : dLabel(d); }).join(" ") : rest > 0 && rest <= 180 && !L.done ? '<span class="no">kein Finish</span>' : "&nbsp;") + "</div>" +
+        '<div class="sm"><span>Ø ' + avg + "</span><span>" + (L.last[i] ? esc(L.last[i]) : "") + "</span></div></div>";
     }).join("") + "</div>";
     h += '<div class="msg' + (note && note.ok ? " ok" : "") + '" aria-live="polite">' + (note ? esc(note.t) : "") + "</div>";
     if (L.done) {
+      var nx = T.all.filter(function (x) { return x.playable; })[0];
       h += '<div class="wonbox"><span class="eyebrow">Sieger</span><strong>' + esc(nameOf(L.legs[0] > L.legs[1] ? L.a : L.b)) + "</strong><span>" + L.legs[0] + ":" + L.legs[1] + " Legs</span></div>";
-      h += '<div class="sheet-foot"><button class="btn" id="c-undo">Rückgängig</button><button class="btn primary" id="c-done">Zurück zum Turnier</button></div>';
+      if (nx) h += '<button class="btn primary big" data-next="' + nx.id + '">▶ Nächstes Spiel: ' + esc(nameOf(nx.a)) + " – " + esc(nameOf(nx.b)) + "</button>";
+      h += '<div class="sheet-foot"><button class="btn" id="c-back">Rückgängig</button><button class="btn" id="c-done">Zum Turnierplan</button></div>';
     } else {
-      h += '<div class="typed">' + (typed ? esc(typed) : '<span class="ph">Punkte für ' + esc(nameOf(L.turn ? L.b : L.a)) + "</span>") + "</div>";
-      h += '<div class="qs">' + QUICK.map(function (q) { return '<button data-q="' + q + '">' + q + "</button>"; }).join("") + "</div>";
-      h += '<div class="pad">' + [1, 2, 3, 4, 5, 6, 7, 8, 9].map(function (d) { return '<button data-k="' + d + '">' + d + "</button>"; }).join("") +
-        '<button data-k="del" aria-label="Löschen">⌫</button><button data-k="0">0</button><button data-k="ok" class="ok">OK</button></div>';
-      h += '<div class="sheet-foot"><button class="btn" id="c-undo"' + (L.hist.length ? "" : " disabled") + '>Rückgängig</button><button class="btn" id="c-rest" title="Rest direkt eintragen">Rest = 0 (Checkout)</button></div>';
+      h += '<div class="visit">' + [0, 1, 2].map(function (i) { return '<span class="slot' + (L.darts[i] ? " f" : "") + '">' + (L.darts[i] ? dLabel(L.darts[i]) : "Dart " + (i + 1)) + "</span>"; }).join("") +
+        '<span class="sum">= ' + sum + "</span></div>";
+      h += '<div class="mods">' + [[1, "Single"], [2, "Double"], [3, "Triple"]].map(function (x) {
+        return '<button data-mod="' + x[0] + '" aria-pressed="' + (L.mod === x[0]) + '">' + x[1] + "</button>"; }).join("") + "</div>";
+      h += '<div class="pad">' + range(20, 1).reverse().map(function (n) {
+        return '<button data-dart="' + n + '">' + (L.mod > 1 ? (L.mod === 3 ? "T" : "D") : "") + n + (L.mod > 1 ? "<small>" + L.mod * n + "</small>" : "") + "</button>";
+      }).join("") +
+        '<button data-dart="25"' + (L.mod === 3 ? " disabled" : "") + ">" + (L.mod === 2 ? "Bull<small>50</small>" : "25") + "</button>" +
+        '<button data-dart="0">0<small>Miss</small></button>' +
+        '<button id="c-back" aria-label="Letzten Dart löschen"' + (L.darts.length || L.hist.length ? "" : " disabled") + ">⌫</button>" +
+        '<button id="c-ok" class="ok">Fertig</button></div>';
     }
     return h + "</div></div>";
-  }
-  function key(k) {
-    if (k === "del") typed = typed.slice(0, -1);
-    else if (k === "ok") return submit(typed === "" ? 0 : parseInt(typed, 10));
-    else if (typed.length < 3) typed = (typed + k).replace(/^0+(?=\d)/, "");
-    render();
   }
 
   // ---------- Rendern & Events ----------
@@ -534,12 +585,13 @@ select, .txt { border: 1px solid var(--line); background: var(--bg); border-radi
     if (t.id === "reset-yes") { S.phase = "setup"; S.results = {}; S.live = null; S.confirm = false; save(); return render(); }
     if (t.id === "redraw") return startTournament(true);
     if (t.dataset.go) return openCounter(t.dataset.go);
-    if (t.dataset.k) return key(t.dataset.k);
-    if (t.dataset.q) return submit(+t.dataset.q);
-    if (t.id === "c-rest" && S.live) return submit(S.live.rest[S.live.turn]);
-    if (t.id === "c-undo") return undo();
+    if (t.dataset.dart) return addDart(+t.dataset.dart);
+    if (t.dataset.mod && S.live) { S.live.mod = S.live.mod === +t.dataset.mod ? 1 : +t.dataset.mod; save(); return render(); }
+    if (t.id === "c-back") return back();
+    if (t.id === "c-ok") return endVisit(false);
     if (t.id === "c-close") { S.live.open = false; save(); return render(); }
     if (t.id === "c-done") { S.live = null; note = null; save(); return render(); }
+    if (t.dataset.next) { S.live = null; return openCounter(t.dataset.next); }
     if (t.classList.contains("pick")) {
       var m = findMatch(t.dataset.id); if (!m || !m.ready) return;
       var p = m[t.dataset.side];
@@ -576,9 +628,8 @@ select, .txt { border: 1px solid var(--line); background: var(--bg); border-radi
   });
   document.addEventListener("keydown", function (e) {
     if (S.live && S.live.open && S.phase === "run" && !S.live.done) {
-      if (/^\d$/.test(e.key)) { e.preventDefault(); return key(e.key); }
-      if (e.key === "Backspace") { e.preventDefault(); return key("del"); }
-      if (e.key === "Enter") { e.preventDefault(); return key("ok"); }
+      if (e.key === "Backspace") { e.preventDefault(); return back(); }
+      if (e.key === "Enter") { e.preventDefault(); return endVisit(false); }
     }
     if (e.key === "Escape" && S.live && S.live.open) { S.live.open = false; save(); return render(); }
     if (e.key === "Enter" && e.target.dataset && e.target.dataset.i != null) {

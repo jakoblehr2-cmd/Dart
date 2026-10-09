@@ -15,12 +15,15 @@
 
   function blankState() {
     return { phase: "setup", name: "Dartabend", count: 8, names: [], mode: MODES[0], firstTo: 2, shuffle: true, full: true,
-             players: [], slots: [], results: {}, confirm: false, live: null, liveId: null };
+             players: [], slots: [], results: {}, confirm: false, live: null, liveId: null,
+             screen: "start", single: { names: ["", ""], score: "501", out: "Double", firstTo: 2, starter: "0" }, slive: null };
   }
   var S;
   try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) { S = null; }
   if (!S || !S.phase) S = blankState();
   if (S.full == null) S.full = true;
+  if (!S.screen) S.screen = "start";
+  if (!S.single) S.single = blankState().single;
   S.confirm = false;
   var note = null, showQR = false;
 
@@ -95,7 +98,6 @@
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function legWord(n) { return n === 1 ? " Leg" : " Legs"; }
   function startScore() { return parseInt(S.mode, 10) || 0; }
-  function doubleOut() { return /Double/.test(S.mode); }
   function hasCounter() { return startScore() > 0; }
 
   // Standard-Setzliste: 1 trifft auf N, 2 auf N-1 ... Freilose gehen so an die oberen Setzplätze.
@@ -226,10 +228,10 @@
 
   function renderSetup() {
     if (role !== "org") {
-      return '<header class="head"><div class="board"><div class="ring" aria-hidden="true"></div><div><div class="eyebrow">Turnierplan</div><h1>' + esc(S.name || "Dartabend") + "</h1></div></div></header>" +
+      return '<header class="head"><div class="board">' + mini() + '<div><div class="eyebrow">Turnierplan</div><h1>' + esc(S.name || "Dartabend") + "</h1></div></div></header>" +
         '<div class="empty">' + (role === "pending" ? "Lädt …" : "Das Turnier hat noch nicht begonnen. Die Seite aktualisiert sich von selbst, sobald es losgeht.") + "</div>";
     }
-    var h = '<header class="head"><div class="board"><div class="ring" aria-hidden="true"></div><div><div class="eyebrow">Turnierplan</div><h1>Neues Dart-Turnier</h1></div></div></header>';
+    var h = '<header class="head"><div class="board">' + mini() + '<div><div class="eyebrow">Turnierplan</div><h1>Neues Dart-Turnier</h1></div></div><div class="actions">' + homeBtn() + "</div></header>";
     h += '<section class="panel">';
     h += '<div class="row">' +
       '<div class="field"><label for="tname">Turniername</label><input class="txt" id="tname" value="' + esc(S.name) + '"></div>' +
@@ -274,9 +276,9 @@
     var real = T.all.filter(function (m) { return !m.bye; });
     var done = real.filter(function (m) { return m.winner !== TBD; }).length;
     var fin = T.final;
-    var h = '<header class="head"><div class="board"><div class="ring" aria-hidden="true"></div><div><div class="eyebrow">' + esc(S.mode) + " · First to " + S.firstTo + legWord(S.firstTo) +
+    var h = '<header class="head"><div class="board">' + mini() + '<div><div class="eyebrow">' + esc(S.mode) + " · First to " + S.firstTo + legWord(S.firstTo) +
       "</div><h1>" + esc(S.name || "Dart-Turnier") + '</h1><div class="meta">' + S.players.length + " Spieler · " + done + " von " + real.length + " Spielen gespielt</div></div></div>";
-    h += '<div class="actions"><button class="btn" id="qr">QR-Code</button>' + (role !== "org" ? "" : S.confirm
+    h += '<div class="actions">' + (role === "org" ? homeBtn() : "") + '<button class="btn" id="qr">QR-Code</button>' + (role !== "org" ? "" : S.confirm
       ? '<div class="confirm"><span>Alle Ergebnisse löschen?</span><button class="btn danger" id="reset-yes">Ja, neues Turnier</button><button class="btn" id="redraw">Gleiche Spieler neu auslosen</button><button class="btn" id="reset-no">Abbrechen</button></div>'
       : '<button class="btn" id="reset">Neues Turnier</button>') + "</div></header>";
     h += '<div class="status" id="status">' + (role === "org" ? statusHtml() : "Live-Ansicht · aktualisiert sich automatisch") + "</div>";
@@ -434,9 +436,9 @@
     return null;
   }
   // Kürzester Checkout mit bevorzugten Doppeln (D20, D16, D18 …); bei Single Out darf jeder Dart beenden.
-  function checkout(rest, left) {
-    if (rest <= 0 || left <= 0 || (doubleOut() && rest === 1)) return null;
-    var fins = doubleOut() ? FIN_D : ALL, i, j, v;
+  function checkout(rest, left, dbl) {
+    if (rest <= 0 || left <= 0 || (dbl && rest === 1)) return null;
+    var fins = dbl ? FIN_D : ALL, i, j, v;
     for (i = 0; i < fins.length; i++) if (dVal(fins[i]) === rest) return [fins[i]];
     if (left >= 2) for (i = 0; i < fins.length; i++) { v = oneDart(rest - dVal(fins[i])); if (v) return [v, fins[i]]; }
     if (left >= 3) for (i = 0; i < fins.length; i++) for (j = 0; j < SETUP.length; j++) {
@@ -445,19 +447,39 @@
     return null;
   }
 
+  // Ein Zähler für beides: Turnierspiel (kind "match", schreibt ins Turnier) oder Einzelspiel (kind "single").
+  // Modus, Legs und Namen stecken im Zählerstand selbst.
+  function cur() { return S.screen === "single" ? S.slive : S.live; }
+  function setCur(L) { if (S.screen === "single") S.slive = L; else S.live = L; }
+  function lStart(L) { return parseInt(L.mode, 10) || 501; }
+  function lDouble(L) { return /Double/.test(L.mode); }
+  function freshLive(base, starter) {
+    var s = lStart(base);
+    base.open = true; base.legs = base.legs || [0, 0]; base.rest = [s, s]; base.turn = starter; base.starter = starter; base.firstStarter = starter;
+    base.darts = []; base.mod = 1; base.stats = [{ pts: 0, visits: 0 }, { pts: 0, visits: 0 }]; base.last = [null, null]; base.done = false; base.hist = [];
+    return base;
+  }
   function newLive(m) {
-    var r = m.res || {}, s = startScore();
-    return { id: m.id, a: m.a, b: m.b, open: true, legs: [r.la || 0, r.lb || 0], rest: [s, s], turn: 0, starter: 0, darts: [], mod: 1,
-             stats: [{ pts: 0, visits: 0 }, { pts: 0, visits: 0 }], last: [null, null], done: false, hist: [] };
+    var r = m.res || {};
+    return freshLive({ kind: "match", id: m.id, a: m.a, b: m.b, mode: S.mode, firstTo: S.firstTo, names: [nameOf(m.a), nameOf(m.b)], legs: [r.la || 0, r.lb || 0] }, 0);
   }
   function openCounter(id) {
     var m = compute().all.filter(function (x) { return x.id === id; })[0];
     if (!m || !m.ready) return;
-    if (!S.live || S.live.id !== id || S.live.a !== m.a || S.live.b !== m.b || !S.live.darts) S.live = newLive(m);
+    if (!S.live || S.live.id !== id || S.live.a !== m.a || S.live.b !== m.b || !S.live.darts || !S.live.names) S.live = newLive(m);
     S.live.open = true; S.liveId = id; note = null;
     save(); render();
   }
+  function newSingle(starter) {
+    var c = S.single, mode = c.score + " " + c.out + " Out";
+    var names = [0, 1].map(function (i) { return (c.names[i] || "").trim() || "Spieler " + (i + 1); });
+    if (starter == null) starter = c.starter === "rnd" ? Math.floor(Math.random() * 2) : +c.starter;
+    S.slive = freshLive({ kind: "single", mode: mode, firstTo: c.firstTo, names: names }, starter);
+    note = { t: names[starter] + " wirft an. Game on!", ok: true };
+    save(); render();
+  }
   function writeResult(L) {
+    if (L.kind === "single") return;
     var r = S.results[L.id];
     if (!r || r.a !== L.a || r.b !== L.b) r = { a: L.a, b: L.b, w: null };
     r.la = L.legs[0]; r.lb = L.legs[1];
@@ -468,34 +490,34 @@
   function visitSum(L) { return L.darts.reduce(function (s, d) { return s + dVal(d); }, 0); }
 
   function addDart(n) {
-    var L = S.live;
+    var L = cur();
     if (!L || L.done) return;
     var d = { m: n === 0 ? 1 : L.mod, n: n };
     if (n === 25 && d.m === 3) return;
     if (!L.darts.length) snapshot(L);
     L.darts.push(d); L.mod = 1; note = null;
-    var nr = L.rest[L.turn] - visitSum(L);
-    var bust = nr < 0 || (doubleOut() && nr === 1) || (nr === 0 && doubleOut() && d.m !== 2);
+    var nr = L.rest[L.turn] - visitSum(L), dbl = lDouble(L);
+    var bust = nr < 0 || (dbl && nr === 1) || (nr === 0 && dbl && d.m !== 2);
     if (bust || nr === 0 || L.darts.length === 3) return endVisit(bust);
     save(); render();
   }
   function endVisit(bust) {
-    var L = S.live, t = L.turn, sum = visitSum(L), who = nameOf(t ? L.b : L.a);
+    var L = cur(), t = L.turn, sum = visitSum(L), who = L.names[t];
     if (!L.darts.length) snapshot(L);
     L.stats[t].visits++;
     var lbl = L.darts.map(dLabel).join(" ");
     if (bust) {
       L.last[t] = "Bust (" + lbl + ")";
-      note = { t: "Überworfen! " + who + " bleibt auf " + L.rest[t] + "." + (doubleOut() && L.rest[t] - sum === 0 ? " Der letzte Dart muss ein Doppel sein." : ""), ok: false };
+      note = { t: "Überworfen! " + who + " bleibt auf " + L.rest[t] + "." + (lDouble(L) && L.rest[t] - sum === 0 ? " Der letzte Dart muss ein Doppel sein." : ""), ok: false };
       L.turn = 1 - t;
     } else {
       L.stats[t].pts += sum; L.rest[t] -= sum; L.last[t] = (lbl || "0") + " = " + sum;
       if (L.rest[t] === 0) {
         L.legs[t]++;
-        if (L.legs[t] >= S.firstTo) { L.done = true; S.liveId = null; note = { t: who + " checkt " + sum + " und gewinnt!", ok: true }; }
+        if (L.legs[t] >= L.firstTo) { L.done = true; if (L.kind !== "single") S.liveId = null; note = { t: who + " checkt " + sum + " und gewinnt!", ok: true }; }
         else {
-          L.starter = 1 - L.starter; L.turn = L.starter; L.rest = [startScore(), startScore()]; L.last = [null, null];
-          note = { t: who + " checkt " + sum + ". Leg " + L.legs[0] + ":" + L.legs[1] + ", " + nameOf(L.starter ? L.b : L.a) + " wirft an.", ok: true };
+          L.starter = 1 - L.starter; L.turn = L.starter; L.rest = [lStart(L), lStart(L)]; L.last = [null, null];
+          note = { t: who + " checkt " + sum + ". Leg " + L.legs[0] + ":" + L.legs[1] + ", " + L.names[L.starter] + " wirft an.", ok: true };
         }
         writeResult(L);
       } else L.turn = 1 - t;
@@ -505,7 +527,7 @@
   }
   // ⌫: letzten Dart löschen; ist die Aufnahme leer, die vorige Aufnahme zurücknehmen.
   function back() {
-    var L = S.live; if (!L) return;
+    var L = cur(); if (!L) return;
     if (L.darts.length) {
       L.darts.pop();
       if (!L.darts.length) L.hist.pop();
@@ -513,35 +535,46 @@
     }
     if (!L.hist.length) return;
     var h = L.hist, prev = h.pop(); prev.hist = h; prev.open = true; prev.darts = prev.darts || [];
-    S.live = prev; writeResult(prev); note = { t: "Letzte Aufnahme zurückgenommen.", ok: true };
+    setCur(prev); writeResult(prev); note = { t: "Letzte Aufnahme zurückgenommen.", ok: true };
     save(); render();
   }
 
   function renderCounter(T) {
-    var L = S.live;
+    var L = cur();
     if (!L || !L.open) return "";
-    var m = T.all.filter(function (x) { return x.id === L.id; })[0];
-    if (!m || m.a !== L.a || m.b !== L.b) { S.live = null; return ""; }
-    var sum = visitSum(L);
+    var title;
+    if (L.kind === "single") title = "Einzelspiel";
+    else {
+      var m = T.all.filter(function (x) { return x.id === L.id; })[0];
+      if (!m || m.a !== L.a || m.b !== L.b || !L.names) { S.live = null; return ""; }
+      title = (m.no ? "Spiel " + m.no + " · " : "") + m.title;
+    }
+    var sum = visitSum(L), dbl = lDouble(L);
     var h = '<div class="ov" role="dialog" aria-modal="true" aria-label="Punktezähler"><div class="sheet">';
-    h += '<div class="sheet-head"><div class="eyebrow">' + (m.no ? "Spiel " + m.no + " · " : "") + m.title + " · " + esc(S.mode) + " · First to " + S.firstTo + "</div>" +
+    h += '<div class="sheet-head"><div class="eyebrow">' + title + " · " + esc(L.mode) + " · First to " + L.firstTo + "</div>" +
       '<button class="x" id="c-close" aria-label="Zähler schließen">✕</button></div>';
     h += '<div class="duel">' + [0, 1].map(function (i) {
       var st = L.stats[i], avg = st.visits ? (st.pts / st.visits).toFixed(1) : "–";
       var on = !L.done && L.turn === i, rest = L.rest[i] - (on ? sum : 0);
-      var co = L.done ? null : checkout(rest, on ? 3 - L.darts.length : 3);
-      var dots = ""; for (var k = 0; k < S.firstTo; k++) dots += '<i class="' + (k < L.legs[i] ? "f" : "") + '"></i>';
-      return '<div class="pl-card' + (on ? " on" : "") + '"><div class="sm"><span class="who">' + esc(nameOf(i ? L.b : L.a)) + '</span><span class="dots" aria-label="' + L.legs[i] + legWord(L.legs[i]) + '">' + dots + "</span></div>" +
+      var co = L.done ? null : checkout(rest, on ? 3 - L.darts.length : 3, dbl);
+      var dots = ""; for (var k = 0; k < L.firstTo; k++) dots += '<i class="' + (k < L.legs[i] ? "f" : "") + '"></i>';
+      return '<div class="pl-card' + (on ? " on" : "") + '"><div class="sm"><span class="who">' + esc(L.names[i]) + '</span><span class="dots" aria-label="' + L.legs[i] + legWord(L.legs[i]) + '">' + dots + "</span></div>" +
         '<div class="rest">' + rest + "</div>" +
         '<div class="co">' + (co ? co.map(function (d) { return d.m === 1 && d.n !== 25 ? "S" + d.n : dLabel(d); }).join(" ") : rest > 0 && rest <= 180 && !L.done ? '<span class="no">kein Finish</span>' : "&nbsp;") + "</div>" +
         '<div class="sm"><span>Ø ' + avg + "</span><span>" + (L.last[i] ? esc(L.last[i]) : "") + "</span></div></div>";
     }).join("") + "</div>";
     h += '<div class="msg' + (note && note.ok ? " ok" : "") + '" aria-live="polite">' + (note ? esc(note.t) : "") + "</div>";
     if (L.done) {
-      var nx = T.all.filter(function (x) { return x.playable; })[0];
-      h += '<div class="wonbox"><span class="eyebrow">Sieger</span><strong>' + esc(nameOf(L.legs[0] > L.legs[1] ? L.a : L.b)) + "</strong><span>" + L.legs[0] + ":" + L.legs[1] + " Legs</span></div>";
-      if (nx) h += '<button class="btn primary big" data-next="' + nx.id + '">▶ Nächstes Spiel: ' + esc(nameOf(nx.a)) + " – " + esc(nameOf(nx.b)) + "</button>";
-      h += '<div class="sheet-foot"><button class="btn" id="c-back">Rückgängig</button><button class="btn" id="c-done">Zum Turnierplan</button></div>';
+      var wi = L.legs[0] > L.legs[1] ? 0 : 1;
+      h += '<div class="wonbox"><span class="eyebrow">Sieger</span><strong>' + esc(L.names[wi]) + "</strong><span>" + L.legs[wi] + ":" + L.legs[1 - wi] + " gegen " + esc(L.names[1 - wi]) + "</span></div>";
+      if (L.kind === "single") {
+        h += '<button class="btn primary big" id="s-rematch">▶ Revanche</button>';
+        h += '<div class="sheet-foot"><button class="btn" id="c-back">Rückgängig</button><button class="btn" id="c-done">Neues Spiel</button><button class="btn" id="home">Start</button></div>';
+      } else {
+        var nx = T.all.filter(function (x) { return x.playable; })[0];
+        if (nx) h += '<button class="btn primary big" data-next="' + nx.id + '">▶ Nächstes Spiel: ' + esc(nameOf(nx.a)) + " – " + esc(nameOf(nx.b)) + "</button>";
+        h += '<div class="sheet-foot"><button class="btn" id="c-back">Rückgängig</button><button class="btn" id="c-done">Zum Turnierplan</button></div>';
+      }
     } else {
       h += '<div class="visit">' + [0, 1, 2].map(function (i) { return '<span class="slot' + (L.darts[i] ? " f" : "") + '">' + (L.darts[i] ? dLabel(L.darts[i]) : "Dart " + (i + 1)) + "</span>"; }).join("") +
         '<span class="sum">= ' + sum + "</span></div>";
@@ -558,13 +591,88 @@
     return h + "</div></div>";
   }
 
+  // ---------- Dartscheibe ----------
+  // Echte Segmentfolge im Uhrzeigersinn ab 20 oben; Radien im Verhältnis eines Turnierboards (Doppelring = 100).
+  var BOARD_NUMS = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
+  function sector(r1, r2, a0, a1) {
+    function pt(r, a) { a = a * Math.PI / 180; return (r * Math.cos(a)).toFixed(2) + " " + (r * Math.sin(a)).toFixed(2); }
+    return "M" + pt(r2, a0) + "A" + r2 + " " + r2 + " 0 0 1 " + pt(r2, a1) + "L" + pt(r1, a1) + "A" + r1 + " " + r1 + " 0 0 0 " + pt(r1, a0) + "Z";
+  }
+  var BOARD_SVG = (function () {
+    var p = { dark: "", light: "", red: "", green: "" }, txt = "";
+    BOARD_NUMS.forEach(function (n, i) {
+      var a0 = i * 18 - 99, a1 = a0 + 18, even = i % 2 === 0;
+      p[even ? "dark" : "light"] += sector(9.4, 58, a0, a1) + sector(63, 95, a0, a1);
+      p[even ? "red" : "green"] += sector(58, 63, a0, a1) + sector(95, 100, a0, a1);
+      var a = (i * 18 - 90) * Math.PI / 180;
+      txt += '<text x="' + (110 * Math.cos(a)).toFixed(1) + '" y="' + (110 * Math.sin(a)).toFixed(1) + '">' + n + "</text>";
+    });
+    return '<svg viewBox="-121 -121 242 242" role="img" aria-label="Dartscheibe"><circle r="121" fill="#141414"/>' +
+      '<path fill="#1c1c1c" d="' + p.dark + '"/><path fill="#efe4c6" d="' + p.light + '"/><path fill="#d0232f" d="' + p.red + '"/><path fill="#1d8a4b" d="' + p.green + '"/>' +
+      '<circle r="9.4" fill="#1d8a4b"/><circle r="3.7" fill="#d0232f"/>' +
+      '<g fill="#f4f4f4" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-weight="700" font-size="13" text-anchor="middle" dominant-baseline="central">' + txt + "</g></svg>";
+  })();
+  function mini() { return '<span class="mini" aria-hidden="true">' + BOARD_SVG + "</span>"; }
+
+  // ---------- Start & Einzelspiel ----------
+  function homeBtn() { return '<button class="btn ghost" id="home">‹ Start</button>'; }
+  function renderStart() {
+    var tourCta = "Turnier einrichten →";
+    if (S.phase === "run" && S.players.length) {
+      var T = compute(), real = T.all.filter(function (m) { return !m.bye; });
+      tourCta = "Turnier fortsetzen · " + real.filter(function (m) { return m.winner !== TBD; }).length + " von " + real.length + " gespielt →";
+    }
+    var sl = S.slive, singleCta = sl && !sl.done ? "Spiel fortsetzen · " + esc(sl.names[0]) + " " + sl.legs[0] + ":" + sl.legs[1] + " " + esc(sl.names[1]) + " →" : "Spiel einrichten →";
+    return '<section class="hero"><div class="hero-board">' + BOARD_SVG + "</div>" +
+      '<div class="hero-text"><div class="eyebrow">Dartabend</div><h1 class="display">Game on.</h1>' +
+      "<p>Punkte zählen, Turnier spielen, Plätze ausspielen. Alles auf einem Handy.</p></div></section>" +
+      '<div class="choices">' +
+      '<button class="choice single" id="go-single"><span class="ico" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="19"/><circle cx="24" cy="24" r="11"/><circle cx="24" cy="24" r="3" class="fill"/></svg></span>' +
+        '<span class="eyebrow">1 gegen 1</span><strong>Einzelspiel</strong><span class="desc">501 oder 301, Double oder Single Out. Mit Punktezähler und Checkout-Hilfe.</span><span class="cta">' + singleCta + "</span></button>" +
+      '<button class="choice tour" id="go-tour"><span class="ico" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M4 8h12v8H4zM4 32h12v8H4zM16 12h6v24h-6M22 24h8M30 20h14v8H30z"/></svg></span>' +
+        '<span class="eyebrow">2 bis 32 Spieler</span><strong>Turnier</strong><span class="desc">K.-o. mit Platzierungsspielen, Spielreihenfolge und Live-Ansicht für alle per QR-Code.</span><span class="cta">' + tourCta + "</span></button>" +
+      "</div>";
+  }
+  function seg(attr, items, val) {
+    return '<div class="seg">' + items.map(function (x) { return "<button " + attr + '="' + x[0] + '" aria-pressed="' + (String(x[0]) === String(val)) + '">' + x[1] + "</button>"; }).join("") + "</div>";
+  }
+  function renderSingle() {
+    var c = S.single, sl = S.slive;
+    var h = '<header class="head"><div class="board">' + mini() + '<div><div class="eyebrow">1 gegen 1</div><h1>Einzelspiel</h1></div></div><div class="actions">' + homeBtn() + "</div></header>";
+    if (sl && !sl.done) h += '<div class="resume"><span>Laufendes Spiel: <b>' + esc(sl.names[0]) + " " + sl.legs[0] + ":" + sl.legs[1] + " " + esc(sl.names[1]) + "</b> · " + esc(sl.mode) + '</span><button class="btn primary" id="s-resume">Fortsetzen</button></div>';
+    h += '<section class="panel">';
+    h += '<div class="field"><span class="lbl">Spieler</span><div class="duo">' +
+      '<input class="txt" id="s0" placeholder="Spieler 1" value="' + esc(c.names[0] || "") + '" autocomplete="off" aria-label="Spieler 1">' +
+      '<span class="vsx">vs</span>' +
+      '<input class="txt" id="s1" placeholder="Spieler 2" value="' + esc(c.names[1] || "") + '" autocomplete="off" aria-label="Spieler 2"></div></div>';
+    h += '<div class="row">' +
+      '<div class="field"><span class="lbl">Startpunkte</span>' + seg("data-sscore", [["501", "501"], ["301", "301"]], c.score) + "</div>" +
+      '<div class="field"><span class="lbl">Checkout</span>' + seg("data-sout", [["Double", "Double Out"], ["Single", "Single Out"]], c.out) + "</div>" +
+      '<div class="field"><span class="lbl">Gewonnen bei</span>' + seg("data-sft", [1, 2, 3, 4, 5].map(function (n) { return [n, n]; }), c.firstTo) + '<span class="hint">First to ' + c.firstTo + legWord(c.firstTo) + "</span></div>" +
+      "</div>";
+    var nm = [0, 1].map(function (i) { return esc((c.names[i] || "").trim() || "Spieler " + (i + 1)); });
+    h += '<div class="field"><span class="lbl">Wer wirft an?</span>' + seg("data-sst", [["0", nm[0]], ["1", nm[1]], ["rnd", "Zufall"]], c.starter) + "</div>";
+    h += '<div class="row" style="justify-content:space-between;align-items:center"><span class="hint">' + c.score + " " + c.out + " Out · First to " + c.firstTo + legWord(c.firstTo) +
+      '</span><button class="btn primary big" id="s-start">Game on!</button></div>';
+    h += "</section>";
+    return h + renderCounter(null);
+  }
+
   // ---------- Rendern & Events ----------
   var app = document.getElementById("app");
   function render() {
-    app.innerHTML = S.phase === "run" ? renderRun() : renderSetup();
-    var ov = showQR || (role === "org" && S.live && S.live.open && S.phase === "run");
+    var html;
+    if (role === "pending") html = '<div class="loading">' + mini() + "<span>Lädt …</span></div>";
+    else if (role !== "org") html = S.phase === "run" ? renderRun() : renderSetup();
+    else if (S.screen === "single") html = renderSingle();
+    else if (S.screen === "tournament") html = S.phase === "run" ? renderRun() : renderSetup();
+    else html = renderStart();
+    app.innerHTML = html;
+    var L = cur();
+    var ov = showQR || (role === "org" && L && L.open && (S.screen === "single" || (S.screen === "tournament" && S.phase === "run")));
     document.documentElement.style.overflow = ov ? "hidden" : "";
   }
+  function go(screen) { S.screen = screen; showQR = false; note = null; save(); render(); window.scrollTo(0, 0); }
 
   function setCount(n) {
     n = Math.max(2, Math.min(32, n));
@@ -576,6 +684,16 @@
   app.addEventListener("click", function (e) {
     var t = e.target.closest("button");
     if (!t || t.disabled) return;
+    if (t.id === "home") { if (S.slive && S.slive.done) S.slive = null; return go("start"); }
+    if (t.id === "go-single") return go("single");
+    if (t.id === "go-tour") return go("tournament");
+    if (t.dataset.sscore) { S.single.score = t.dataset.sscore; save(); return render(); }
+    if (t.dataset.sout) { S.single.out = t.dataset.sout; save(); return render(); }
+    if (t.dataset.sft) { S.single.firstTo = +t.dataset.sft; save(); return render(); }
+    if (t.dataset.sst) { S.single.starter = t.dataset.sst; save(); return render(); }
+    if (t.id === "s-start") return newSingle();
+    if (t.id === "s-resume") { S.slive.open = true; note = null; save(); return render(); }
+    if (t.id === "s-rematch") { var fs = S.slive.firstStarter; return newSingle(1 - (fs || 0)); }
     if (t.id === "minus") return setCount(S.count - 1);
     if (t.id === "plus") return setCount(S.count + 1);
     if (t.dataset.n) return setCount(+t.dataset.n);
@@ -595,11 +713,11 @@
     if (t.id === "redraw") return startTournament(true);
     if (t.dataset.go) return openCounter(t.dataset.go);
     if (t.dataset.dart) return addDart(+t.dataset.dart);
-    if (t.dataset.mod && S.live) { S.live.mod = S.live.mod === +t.dataset.mod ? 1 : +t.dataset.mod; save(); return render(); }
+    if (t.dataset.mod && cur()) { var L = cur(); L.mod = L.mod === +t.dataset.mod ? 1 : +t.dataset.mod; save(); return render(); }
     if (t.id === "c-back") return back();
     if (t.id === "c-ok") return endVisit(false);
-    if (t.id === "c-close") { S.live.open = false; save(); return render(); }
-    if (t.id === "c-done") { S.live = null; S.liveId = null; note = null; save(); return render(); }
+    if (t.id === "c-close") { cur().open = false; if (cur().done) setCur(null); save(); return render(); }
+    if (t.id === "c-done") { if (S.screen !== "single") S.liveId = null; setCur(null); note = null; save(); return render(); }
     if (t.dataset.next) { S.live = null; return openCounter(t.dataset.next); }
     if (t.classList.contains("pick")) {
       var m = findMatch(t.dataset.id); if (!m || !m.ready) return;
@@ -635,14 +753,20 @@
     var t = e.target;
     if (t.dataset.i != null) { S.names[+t.dataset.i] = t.value; save(); }
     if (t.id === "tname") { S.name = t.value; save(); }
+    if (t.id === "s0" || t.id === "s1") {
+      var i = +t.id.slice(1), b = app.querySelector('[data-sst="' + i + '"]');
+      S.single.names[i] = t.value; save();
+      if (b) b.textContent = t.value.trim() || "Spieler " + (i + 1);
+    }
   });
   document.addEventListener("keydown", function (e) {
-    if (role === "org" && !showQR && S.live && S.live.open && S.phase === "run" && !S.live.done) {
+    var L = role === "org" ? cur() : null;
+    if (L && !showQR && L.open && !L.done && (S.screen === "single" || S.phase === "run")) {
       if (e.key === "Backspace") { e.preventDefault(); return back(); }
       if (e.key === "Enter") { e.preventDefault(); return endVisit(false); }
     }
     if (e.key === "Escape" && showQR) { showQR = false; return render(); }
-    if (e.key === "Escape" && S.live && S.live.open) { S.live.open = false; save(); return render(); }
+    if (e.key === "Escape" && L && L.open) { L.open = false; save(); return render(); }
     if (e.key === "Enter" && e.target.dataset && e.target.dataset.i != null) {
       var nx = document.getElementById("n" + (+e.target.dataset.i + 1));
       if (nx) nx.focus(); else document.getElementById("start").focus();

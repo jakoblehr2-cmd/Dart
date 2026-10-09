@@ -1,6 +1,6 @@
 # Dart-Turnierplan
 
-Kleine Web-App für einen K.-o.-Dartabend: Spieleranzahl wählen, Namen eintragen, Turnier starten.
+Kleine Web-App für den Dartabend. Auf dem Startbildschirm wählt man **Einzelspiel** (1 gegen 1 mit Punktezähler, 501/301, Double/Single Out, First to X, Anwurf, Revanche) oder **Turnier**.
 
 - Automatischer Turnierbaum (2–32 Spieler); bei ungeraden Zahlen gibt es Freilose für die ersten Setzplätze
 - Paarungen werden optional ausgelost

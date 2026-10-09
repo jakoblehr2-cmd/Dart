@@ -2,7 +2,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
-<style>
+<style id="page-style">
 /* Layout: Kopfzeile, dann "Jetzt dran" + Tabelle, darunter der K.-o.-Baum in horizontal scrollbarem Container */
 :root {
   --bg: #f1f4ef;
@@ -173,8 +173,25 @@ select, .txt { border: 1px solid var(--line); background: var(--bg); border-radi
 .btn.big { padding: 14px; font-size: 1rem; }
 .wonbox { text-align: center; padding: 20px 12px; background: var(--green-soft); border: 1px solid var(--green); border-radius: 12px; display: flex; flex-direction: column; gap: 4px; }
 .wonbox strong { font-family: var(--font-display); font-size: 2.4rem; line-height: 1.05; }
+
+/* Teilen & persönliche Ansicht */
+.status { font-size: .85rem; color: var(--muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.status .ok { color: var(--green); font-weight: 600; }
+.status .err { color: var(--red); font-weight: 600; }
+.mecard { background: var(--surface); border: 2px solid var(--ink); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+.mecard.turn { border-color: var(--red); background: var(--red-soft); }
+.mecard .big { font-family: var(--font-display); font-size: 1.9rem; line-height: 1.05; }
+.mecard select { align-self: flex-start; }
+.mecard ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: .9rem; }
+.mrow.me .pick, .table tr.me td { color: var(--red); font-weight: 700; }
+.table tr.me td { background: var(--red-soft); }
+.qrbox { background: #fff; padding: 28px; border-radius: 12px; align-self: center; line-height: 0; }
+.qrbox svg { display: block; width: min(64vw, 260px); height: auto; }
+.url { font-family: ui-monospace, Menlo, monospace; font-size: .85rem; word-break: break-all; user-select: all; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+.ov.scroll { overflow-y: auto; }
 </style>
 
 <div class="wrap" id="app"></div>
 
+<script type="application/json" id="shared">null</script>
 <script src="app.js"></script>

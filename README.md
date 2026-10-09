@@ -6,7 +6,10 @@ Kleine Web-App für einen K.-o.-Dartabend: Spieleranzahl wählen, Namen eintrage
 - Paarungen werden optional ausgelost
 - „Jetzt dran“ zeigt alle Spiele, die gerade gespielt werden können
 - Sieger per Tippen oder über die Legs (First to X) eintragen
-- Viertelfinale, Halbfinale, Spiel um Platz 3, Finale und Platzierungen ergeben sich automatisch
+- Viertelfinale, Halbfinale, Finale und Platzierungsspiele (Platz 3, 5–8, 7 …) ergeben sich automatisch; optional nur Spiel um Platz 3
+- Punktezähler für 501/301 (Double oder Single Out): Ziffernfeld, Überwerfen-Erkennung, Legs, 3-Dart-Schnitt, Rückgängig; trägt den Sieger automatisch ein
 - Stand wird im Browser gespeichert (localStorage)
 
-Einfach `index.html` im Browser öffnen. `src/app.html` ist dieselbe Seite ohne HTML-Gerüst (für die Veröffentlichung als Artifact).
+Einfach `index.html` im Browser öffnen.
+
+Quellcode liegt in `src/page.html` (Markup + CSS) und `src/app.js`. `./build.sh` erzeugt daraus `index.html` und `dist/artifact.html`.

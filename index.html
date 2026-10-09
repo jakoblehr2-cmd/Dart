@@ -194,6 +194,22 @@ select, .txt { border: 1px solid var(--line); background: var(--bg); border-radi
 .qrbox svg { display: block; width: min(64vw, 260px); height: auto; }
 .url { font-family: ui-monospace, Menlo, monospace; font-size: .85rem; word-break: break-all; user-select: all; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
 .ov.scroll { overflow-y: auto; }
+
+/* Spielreihenfolge */
+.sched { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); overflow: hidden; }
+.srow { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-top: 1px solid var(--line); min-width: 0; }
+.srow:first-child { border-top: 0; }
+.srow .pos { font-family: var(--font-display); font-size: 1.2rem; width: 1.6em; color: var(--muted); font-variant-numeric: tabular-nums; flex: none; }
+.srow .smain { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.srow .vs { overflow-wrap: anywhere; }
+.srow .ph { color: var(--muted); font-style: italic; }
+.srow .chip { flex: none; font-family: var(--font-display); text-transform: uppercase; letter-spacing: .06em; font-size: .75rem; border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; color: var(--muted); }
+.srow.now { background: var(--red-soft); }
+.srow.now .chip { background: var(--red); border-color: var(--red); color: #fff; }
+.srow.soon .chip { border-color: var(--red); color: var(--red); }
+.srow.mine { box-shadow: inset 4px 0 0 var(--red); }
+.srow.done .vs b { color: var(--green); }
+.played summary { cursor: pointer; color: var(--muted); font-weight: 600; padding: 4px 0 8px; }
 </style>
 </head>
 <body>
@@ -385,8 +401,10 @@ select, .txt { border: 1px solid var(--line); background: var(--bg); border-radi
       node(ms.map(function (m) { return m.loser; }), ms.map(function (m) { return { m: m, w: false }; }), p + n / 2, depth + 1, lg);
     }
     node(S.slots.slice(), [], 1, 0, "main");
-    // Spielreihenfolge: Runde für Runde, innerhalb einer Runde zuerst die hinteren Plätze, das Finale ganz am Schluss
-    all.sort(function (x, y) { return x.depth - y.depth || y.p - x.p || x.id.localeCompare(y.id); });
+    // Spielreihenfolge: Runde für Runde, Hauptrunde vor den Platzierungsspielen;
+    // in der letzten Runde steigert es sich von den hinteren Plätzen bis zum Finale.
+    var lastD = all.reduce(function (d, m) { return Math.max(d, m.depth); }, 0);
+    all.sort(function (x, y) { return x.depth - y.depth || (x.depth === lastD ? y.p - x.p : x.p - y.p) || x.id.localeCompare(y.id); });
     var no = 1;
     all.forEach(function (m) { if (!m.bye) m.no = no++; });
     places.sort(function (x, y) { return x.from - y.from || S.players[x.p].name.localeCompare(S.players[y.p].name); });
@@ -490,11 +508,14 @@ select, .txt { border: 1px solid var(--line); background: var(--bg); border-radi
         (fin.res && fin.res.la != null && fin.res.lb != null ? '<span class="meta">Finale ' + fin.res.la + ":" + fin.res.lb + " gegen " + esc(nameOf(fin.loser)) + "</span>" : "") + "</div>";
     }
     var next = T.all.filter(function (m) { return m.playable; });
+    if (role !== "org") h += scheduleHtml(T);
+    else {
     h += "<h2>Jetzt dran</h2>";
     h += next.length ? '<div class="next">' + next.map(labelled).join("") + "</div>"
       : '<div class="empty">' + (done === real.length ? "Alle Spiele sind gespielt." : "Warte auf Ergebnisse aus der vorigen Runde.") + "</div>";
     if (role === "org") h += '<p class="hint">' + (hasCounter() ? "„Spiel starten“ öffnet den Punktezähler. " : "") +
       "Ohne Zähler: auf einen Namen tippen, um den Sieger zu markieren, oder die Legs eintragen. Nochmal tippen hebt das Ergebnis auf.</p>";
+    }
     h += "</section>";
 
     var placed = {}; T.places.forEach(function (x) { placed[x.p] = 1; });
@@ -506,6 +527,7 @@ select, .txt { border: 1px solid var(--line); background: var(--bg); border-radi
     if (stillIn.length) h += '<tr class="open"><td class="pl">–</td><td>Noch offen: ' + stillIn.map(function (i) { return esc(nameOf(i)); }).join(", ") + "</td></tr>";
     h += "</tbody></table></section></div>";
 
+    if (role === "org") h += '<section class="sec">' + scheduleHtml(T) + "</section>";
     h += '<section class="sec"><h2>Turnierbaum</h2><div class="bracket-wrap"><div class="bracket">';
     columns(T.all.filter(function (m) { return m.group === "main"; })).forEach(function (c) {
       h += '<div class="round"><h3>' + c.title + '</h3><div class="round-m">' + c.html + "</div></div>";
@@ -522,6 +544,41 @@ select, .txt { border: 1px solid var(--line); background: var(--bg); border-radi
       h += "</div></section>";
     }
     return h + (role === "org" ? renderCounter(T) : "") + renderQR();
+  }
+
+  // ---------- Spielreihenfolge ----------
+  // Ein Board: Spiele laufen nach Spielnummer. Was spielbereit ist, wird der Reihe nach aufgerufen.
+  function sideName(m, side) {
+    var p = m[side];
+    return p === TBD ? '<span class="ph">' + srcLabel(side === "a" ? m.srcA : m.srcB) + "</span>" : esc(nameOf(p));
+  }
+  function scheduleHtml(T) {
+    var me = myIndex();
+    var real = T.all.filter(function (m) { return !m.bye; });
+    var open = real.filter(function (m) { return m.winner === TBD; });
+    var played = real.filter(function (m) { return m.winner !== TBD; });
+    var liveOn = open.some(function (m) { return m.id === S.liveId; }), firstShown = false;
+    var h = '<h2>Spielreihenfolge</h2>';
+    if (!open.length) h += '<div class="empty">Alle Spiele sind gespielt.</div>';
+    else h += '<ol class="sched">' + open.map(function (m, i) {
+      var st, cls = "";
+      if (m.id === S.liveId) { st = "läuft"; cls = " now"; }
+      else if (m.playable && !firstShown) { firstShown = true; st = liveOn ? "als Nächstes" : "jetzt dran"; cls = liveOn ? " soon" : " now"; }
+      else if (m.playable) st = "bereit";
+      else st = "wartet";
+      var mine = m.a === me || m.b === me;
+      return '<li class="srow' + cls + (mine ? " mine" : "") + '"><span class="pos">' + (i + 1) + '.</span><span class="smain"><span class="eyebrow">Spiel ' + m.no + " · " + m.title + "</span>" +
+        '<span class="vs">' + sideName(m, "a") + ' <span class="ph">vs</span> ' + sideName(m, "b") + '</span></span><span class="chip">' + st + "</span></li>";
+    }).join("") + "</ol>";
+    if (played.length) {
+      h += '<details class="played"><summary>Gespielt (' + played.length + ")</summary><ol class=\"sched\">" + played.map(function (m) {
+        var sc = m.res && m.res.la != null && m.res.lb != null ? m.res.la + ":" + m.res.lb : "";
+        var nm = function (side) { var p = m[side]; return p === m.winner ? "<b>" + esc(nameOf(p)) + "</b>" : esc(nameOf(p)); };
+        return '<li class="srow done' + (m.a === me || m.b === me ? " mine" : "") + '"><span class="pos">✓</span><span class="smain"><span class="eyebrow">Spiel ' + m.no + " · " + m.title + "</span>" +
+          '<span class="vs">' + nm("a") + ' <span class="ph">' + (sc || "vs") + "</span> " + nm("b") + "</span></span></li>";
+      }).join("") + "</ol></details>";
+    }
+    return h;
   }
 
   // ---------- Persönliche Karte ----------

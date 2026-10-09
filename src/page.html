@@ -189,6 +189,22 @@ select, .txt { border: 1px solid var(--line); background: var(--bg); border-radi
 .qrbox svg { display: block; width: min(64vw, 260px); height: auto; }
 .url { font-family: ui-monospace, Menlo, monospace; font-size: .85rem; word-break: break-all; user-select: all; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
 .ov.scroll { overflow-y: auto; }
+
+/* Spielreihenfolge */
+.sched { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); overflow: hidden; }
+.srow { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-top: 1px solid var(--line); min-width: 0; }
+.srow:first-child { border-top: 0; }
+.srow .pos { font-family: var(--font-display); font-size: 1.2rem; width: 1.6em; color: var(--muted); font-variant-numeric: tabular-nums; flex: none; }
+.srow .smain { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.srow .vs { overflow-wrap: anywhere; }
+.srow .ph { color: var(--muted); font-style: italic; }
+.srow .chip { flex: none; font-family: var(--font-display); text-transform: uppercase; letter-spacing: .06em; font-size: .75rem; border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; color: var(--muted); }
+.srow.now { background: var(--red-soft); }
+.srow.now .chip { background: var(--red); border-color: var(--red); color: #fff; }
+.srow.soon .chip { border-color: var(--red); color: var(--red); }
+.srow.mine { box-shadow: inset 4px 0 0 var(--red); }
+.srow.done .vs b { color: var(--green); }
+.played summary { cursor: pointer; color: var(--muted); font-weight: 600; padding: 4px 0 8px; }
 </style>
 
 <div class="wrap" id="app"></div>
